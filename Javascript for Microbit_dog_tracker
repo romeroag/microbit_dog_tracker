@@ -1,0 +1,255 @@
+let feeding_times = ""
+let _1_minute_display_on__off = 0
+let LED_sprite: game.LedSprite = null
+let text_list = ""
+let Transmitter = 0
+let length_of_pause = 0
+let Time = ""
+let transmit_time = ""
+let number_of_transmissions = 0
+radio.onReceivedString(function (receivedString) {
+    if (parseFloat(receivedString) == 999) {
+        basic.showIcon(IconNames.Ghost)
+        number_of_transmissions = 0
+        dog_fed = 1
+        dog_fed_list = [""]
+        text_list = dog_fed_list.removeAt(0)
+        basic.clearScreen()
+    } else {
+        transmit_time = receivedString
+        number_of_transmissions += 1
+        for (let i = 0; i < 4; i++) {
+            basic.showString(receivedString.substr(0, 1),100)
+basic.showLeds(`
+            . . . . .
+            . . . . .
+            . . # . .
+            . . . . .
+            . . . . .
+            `,100)
+basic.showIcon(IconNames.SmallSquare,100)
+basic.showIcon(IconNames.Square,100)
+        }
+        if (number_of_transmissions == 1) {
+            dog_fed_list[0] = transmit_time
+        } else {
+            dog_fed_list.push(transmit_time)
+        }
+        basic.clearScreen()
+    }
+})
+input.onButtonPressed(Button.A, function () {
+    if (Transmitter == 1) {
+        if (hours < 23) {
+            hours += 1
+        } else {
+            hours = 0
+        }
+        basic.showNumber(hours,100)
+basic.clearScreen()
+    } else {
+        if (dog_fed_list.length == 0) {
+            basic.showIcon(IconNames.No)
+            basic.clearScreen()
+        } else {
+            for (let i = 0; i < 5; i++) {
+                basic.showString("" + dog_fed_list.length,200)
+basic.showIcon(IconNames.Yes,200)
+            }
+            basic.clearScreen()
+        }
+    }
+})
+input.onButtonPressed(Button.B, function () {
+    if (Transmitter == 1) {
+        if (minutes < 59) {
+            minutes += 5
+        } else {
+            minutes = 0
+        }
+        basic.showNumber(minutes,100)
+basic.clearScreen()
+    } else {
+        pointer_in_feeding_list = 0
+        for (let i = 0; i < dog_fed_list.length; i++) {
+            for (let i = 0; i < 4; i++) {
+                basic.showString(dog_fed_list[pointer_in_feeding_list].substr(0, 1),100)
+basic.showLeds(`
+                    . . . . .
+                    . . # . .
+                    . # # # .
+                    . . # . .
+                    . . . . .
+                    `,100)
+            }
+            basic.clearScreen()
+            basic.showString(dog_fed_list[pointer_in_feeding_list].substr(2, 6))
+            pointer_in_feeding_list += 1
+        }
+        basic.clearScreen()
+    }
+})
+input.onGesture(Gesture.TiltLeft, function () {
+    if (Transmitter == 1) {
+        Time = "" + hours + ":" + minutes
+        transmit_time = "" + dog_fed + ">" + Time
+        radio.sendString(transmit_time)
+        number_of_transmissions += 1
+        if (number_of_transmissions == 1) {
+            dog_fed_list[0] = transmit_time
+        } else {
+            dog_fed_list.push(transmit_time)
+        }
+        for (let i = 0; i < 4; i++) {
+            basic.showString("" + dog_fed,100)
+basic.showLeds(`
+                # . . . .
+                . # . . .
+                # # # . .
+                . # . . .
+                # . . . .
+                `,100)
+basic.showLeds(`
+                . # . . .
+                . . # . .
+                # # # # .
+                . . # . .
+                . # . . .
+                `,100)
+basic.showLeds(`
+                . . # . .
+                . . . # .
+                # # # # #
+                . . . # .
+                . . # . .
+                `,100)
+        }
+        basic.clearScreen()
+        dog_fed += 1
+    } else {
+        if (Transmitter == 0) {
+            basic.showString("R")
+            basic.clearScreen()
+        } else {
+            basic.showIcon(IconNames.No)
+            basic.clearScreen()
+        }
+    }
+})
+input.onPinPressed(TouchPin.P2, function () {
+    number_of_transmissions = 0
+    dog_fed_list = [""]
+    text_list = dog_fed_list.removeAt(0)
+    radio.sendString("999")
+    basic.showIcon(IconNames.Ghost)
+    basic.clearScreen()
+})
+input.onButtonPressed(Button.AB, function () {
+    if (Transmitter == 0) {
+        basic.showString("T")
+        for (let i = 0; i < 4; i++) {
+            basic.showLeds(`
+            . . . . .
+            . . . . .
+            . . # . .
+            . . . . .
+            . . . . .
+            `,100)
+basic.showIcon(IconNames.SmallSquare,100)
+basic.showIcon(IconNames.Square,100)
+basic.clearScreen()
+        }
+        Transmitter += 1
+    } else {
+        if (dog_fed_list.length == 0) {
+            basic.showIcon(IconNames.No)
+            basic.clearScreen()
+        } else {
+            for (let i = 0; i < 5; i++) {
+                basic.showString("" + dog_fed_list.length,200)
+basic.showIcon(IconNames.Yes,200)
+            }
+            basic.clearScreen()
+        }
+    }
+})
+input.onGesture(Gesture.Shake, function () {
+    if (Transmitter >= 1) {
+        Time = "" + hours + ":" + minutes
+        basic.showString(Time)
+    } else {
+        basic.showString("R")
+        LED_sprite = game.createSprite(1, 1)
+        for (let i = 0; i < 16; i++) {
+            basic.pause(75)
+            LED_sprite.move(1)
+            basic.pause(75)
+            LED_sprite.move(1)
+            LED_sprite.turn(Direction.Right, 90)
+        }
+        LED_sprite.delete()
+        basic.clearScreen()
+    }
+})
+let minutes = 0
+let hours = 0
+let dog_fed_list: string[] = []
+let dog_fed = 0
+let pointer_in_feeding_list = 0
+Time = ""
+feeding_times = ""
+transmit_time = ""
+pointer_in_feeding_list = 0
+dog_fed = 1
+minutes = 0
+hours = 6
+number_of_transmissions = 0
+Transmitter = 0
+length_of_pause = 60000
+_1_minute_display_on__off = 1
+radio.setGroup(1)
+radio.setTransmitPower(7)
+basic.showString("Start")
+basic.clearScreen()
+basic.forever(function () {
+    basic.pause(length_of_pause)
+    if (_1_minute_display_on__off == 1) {
+        if (dog_fed_list.length == 0) {
+            basic.showIcon(IconNames.No)
+            basic.clearScreen()
+        } else {
+            LED_sprite = game.createSprite(1, 1)
+            for (let i = 0; i < 16; i++) {
+                basic.pause(75)
+                LED_sprite.move(1)
+                basic.pause(75)
+                LED_sprite.move(1)
+                LED_sprite.turn(Direction.Right, 90)
+            }
+            LED_sprite.delete()
+            for (let i = 0; i < 5; i++) {
+                basic.showString("" + dog_fed_list.length,100)
+basic.showIcon(IconNames.Yes,200)
+            }
+            basic.showString("" + dog_fed_list.length,1000)
+basic.clearScreen()
+        }
+    }
+    if (minutes < 59) {
+        minutes += 1
+    } else {
+        minutes = 0
+        if (hours < 23) {
+            hours += 1
+        } else {
+            hours = 0
+            dog_fed_list = [""]
+            text_list = dog_fed_list.removeAt(0)
+            number_of_transmissions = 0
+            dog_fed = 1
+            basic.showIcon(IconNames.Ghost)
+            radio.sendString("999")
+            basic.clearScreen()
+        }
+    }
+})
