@@ -1,11 +1,11 @@
-let feeding_times = ""
 let _1_minute_display_on__off = 0
+let feeding_times = ""
 let LED_sprite: game.LedSprite = null
 let text_list = ""
-let Transmitter = 0
+let transmit_time = ""
 let length_of_pause = 0
 let Time = ""
-let transmit_time = ""
+let Transmitter = 0
 let number_of_transmissions = 0
 radio.onReceivedString(function (receivedString) {
     if (parseFloat(receivedString) == 999) {
@@ -16,6 +16,7 @@ radio.onReceivedString(function (receivedString) {
         text_list = dog_fed_list.removeAt(0)
         basic.clearScreen()
     } else {
+        Transmitter = 2
         transmit_time = receivedString
         number_of_transmissions += 1
         for (let i = 0; i < 4; i++) {
@@ -93,7 +94,7 @@ input.onGesture(Gesture.TiltLeft, function () {
     if (Transmitter == 1) {
         Time = "" + hours + ":" + minutes
         transmit_time = "" + dog_fed + ">" + Time
-        radio.sendString(transmit_time)
+        radio.sendString("" + transmit_time)
         number_of_transmissions += 1
         if (number_of_transmissions == 1) {
             dog_fed_list[0] = transmit_time
@@ -176,7 +177,7 @@ basic.showIcon(IconNames.Yes,200)
 input.onGesture(Gesture.Shake, function () {
     if (Transmitter >= 1) {
         Time = "" + hours + ":" + minutes
-        basic.showString(Time)
+        basic.showString("" + Time)
     } else {
         basic.showString("R")
         LED_sprite = game.createSprite(1, 1)
@@ -191,11 +192,11 @@ input.onGesture(Gesture.Shake, function () {
         basic.clearScreen()
     }
 })
-let minutes = 0
-let hours = 0
-let dog_fed_list: string[] = []
-let dog_fed = 0
 let pointer_in_feeding_list = 0
+let dog_fed = 0
+let dog_fed_list: string[] = []
+let hours = 0
+let minutes = 0
 Time = ""
 feeding_times = ""
 transmit_time = ""
@@ -213,34 +214,34 @@ basic.showString("Start")
 basic.clearScreen()
 basic.forever(function () {
     basic.pause(length_of_pause)
-    if (_1_minute_display_on__off == 1) {
-        if (dog_fed_list.length == 0) {
-            basic.showIcon(IconNames.No)
-            basic.clearScreen()
-        } else {
-            LED_sprite = game.createSprite(1, 1)
-            for (let i = 0; i < 16; i++) {
-                basic.pause(75)
-                LED_sprite.move(1)
-                basic.pause(75)
-                LED_sprite.move(1)
-                LED_sprite.turn(Direction.Right, 90)
-            }
-            LED_sprite.delete()
-            for (let i = 0; i < 5; i++) {
-                basic.showString("" + dog_fed_list.length,100)
-basic.showIcon(IconNames.Yes,200)
-            }
-            basic.showString("" + dog_fed_list.length,1000)
-basic.clearScreen()
-        }
-    }
     if (minutes < 59) {
         minutes += 1
     } else {
         minutes = 0
         if (hours < 23) {
-            hours += 1
+            if (_1_minute_display_on__off == 1) {
+                hours += 1
+                if (dog_fed_list.length == 0) {
+                    basic.showIcon(IconNames.No)
+                    basic.clearScreen()
+                } else {
+                    LED_sprite = game.createSprite(1, 1)
+                    for (let i = 0; i < 16; i++) {
+                        basic.pause(75)
+                        LED_sprite.move(1)
+                        basic.pause(75)
+                        LED_sprite.move(1)
+                        LED_sprite.turn(Direction.Right, 90)
+                    }
+                    LED_sprite.delete()
+                    for (let i = 0; i < 5; i++) {
+                        basic.showString("" + dog_fed_list.length,100)
+basic.showIcon(IconNames.Yes,200)
+                    }
+                    basic.showString("" + dog_fed_list.length,1000)
+basic.clearScreen()
+                }
+            }
         } else {
             hours = 0
             dog_fed_list = [""]
@@ -249,6 +250,7 @@ basic.clearScreen()
             dog_fed = 1
             basic.showIcon(IconNames.Ghost)
             radio.sendString("999")
+            LED_sprite.delete()
             basic.clearScreen()
         }
     }
